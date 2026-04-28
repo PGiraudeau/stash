@@ -58,7 +58,7 @@ jobs:
 
   smoke-test:
     needs: update-formula
-    runs-on: macos-latest
+    runs-on: macos-14
     steps:
       - name: Install bash 5
         run: brew install bash
@@ -71,6 +71,7 @@ jobs:
       - name: Verify version matches tag
         run: |
           export PATH="/usr/local/bin:/opt/homebrew/bin:$PATH"
+          uname -m
           VERSION=$(bash ./stash --version)
           TAG="${{ github.ref_name }}"
           EXPECTED="${TAG#v}"

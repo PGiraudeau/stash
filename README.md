@@ -19,6 +19,13 @@ brew tap shakedlokits/stash https://github.com/shakedlokits/stash
 brew install shakedlokits/stash/stash
 ```
 
+Apple Silicon note:
+
+```bash
+echo 'export PATH="/opt/homebrew/bin:$PATH"' >> ~/.zprofile
+source ~/.zprofile
+```
+
 ### Quick Example
 
 Push a markdown file to Apple Notes:
@@ -94,8 +101,26 @@ Don't fret. Simply:
 ## Requirements
 
 - **macOS** with Apple Notes
+- **Bash 5+**
 - **[Pandoc](https://pandoc.org/installing.html)** for Markdown ↔ HTML conversion
 - **pcregrep** for frontmatter parsing (usually pre-installed on macOS, or install via `brew install pcre`)
+
+## Apple Silicon (M1/M2/M3/M4) Quick Start
+
+```bash
+brew install bash pandoc pcre
+echo 'export PATH="/opt/homebrew/bin:$PATH"' >> ~/.zprofile
+source ~/.zprofile
+stash --version
+```
+
+On first use, macOS will ask permission to control Notes via Automation (osascript). Approve it, or sync commands will fail.
+
+Optional local smoke check:
+
+```bash
+make smoke-local
+```
 
 ## Design
 

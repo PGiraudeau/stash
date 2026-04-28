@@ -7,10 +7,17 @@ class Stash < Formula
 
   depends_on "pandoc"
   depends_on "pcre"
+  depends_on "bash"
   depends_on :macos
 
   def install
-    bin.install "stash"
+    bin.install "stash" => "stash.bin"
+
+    (bin/"stash").write <<~EOS
+      #!/bin/bash
+      exec "#{Formula["bash"].opt_bin}/bash" "#{bin}/stash.bin" "$@"
+    EOS
+    chmod 0755, bin/"stash"
   end
 
   test do
