@@ -63,6 +63,11 @@ Preview actions only:
 stash sync notes/ --dry-run
 ```
 
+Emit machine-readable actions:
+```bash
+stash sync notes/ --json
+```
+
 Pull a whole folder recursively:
 ```bash
 stash pull notes/
@@ -150,6 +155,19 @@ Don't fret. Simply:
 - `stash_last_local_hash`
 - `stash_last_remote_hash`
 - `stash_note_path`
+
+## Optional repository config
+
+You can define defaults in `.stash.yml`:
+
+```yaml
+apple:
+  base_folder: Projects:Personal
+sync:
+  dry_run_default: false
+```
+
+CLI flags override config values.
 
 ## Apple Silicon (M1/M2/M3/M4) Quick Start
 

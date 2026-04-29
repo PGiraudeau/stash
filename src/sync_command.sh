@@ -4,6 +4,7 @@ sync_one_file() {
 	local base_folder="$3"
 	local auto_create="$4"
 	local dry_run="$5"
+	local json_output="$6"
 
 	echo "Reading file: $file_path"
 	markdown_content=$(read_markdown_file "$file_path") || return 1
@@ -39,6 +40,10 @@ sync_one_file() {
 
 	action=$(resolve_sync_action "$local_hash" "$remote_hash" "$last_local_hash" "$last_remote_hash" "$has_note")
 	echo "Action: $action ($file_path)"
+	if [ "$json_output" = "1" ] || [ "$json_output" = "true" ]; then
+		print_action_json "$file_path" "$note_id" "$action" "planned"
+	fi
+	log_action "$root_dir" "{\"file\":\"$file_path\",\"action\":\"$action\",\"dry_run\":\"$dry_run\"}"
 
 	if [ "$dry_run" = "1" ] || [ "$dry_run" = "true" ]; then
 		return 0
@@ -64,6 +69,7 @@ sync_one_file() {
 			updated_content=$(update_sync_metadata "$updated_content" "$now" "$local_hash" "$local_hash" "$target_folder")
 			write_markdown_file "$file_path" "$updated_content" || return 1
 			echo "Note created: $new_note_id"
+			[ "$json_output" = "1" ] || [ "$json_output" = "true" ] && print_action_json "$file_path" "$new_note_id" "$action" "applied"
 			;;
 		push)
 			html_content=$(echo "$local_body" | prepare_links_for_push "$file_path" "$root_dir" "$link_index" | markdown_to_html)
@@ -72,6 +78,7 @@ sync_one_file() {
 			updated_content=$(update_sync_metadata "$markdown_content" "$now" "$local_hash" "$local_hash" "$note_path")
 			write_markdown_file "$file_path" "$updated_content" || return 1
 			echo "Pushed local changes"
+			[ "$json_output" = "1" ] || [ "$json_output" = "true" ] && print_action_json "$file_path" "$note_found" "$action" "applied"
 			;;
 		pull)
 			now=$(now_utc_iso8601)
@@ -80,12 +87,14 @@ sync_one_file() {
 			updated_content=$(update_sync_metadata "$updated_content" "$now" "$remote_hash" "$remote_hash" "$note_path")
 			write_markdown_file "$file_path" "$updated_content" || return 1
 			echo "Pulled remote changes"
+			[ "$json_output" = "1" ] || [ "$json_output" = "true" ] && print_action_json "$file_path" "$note_found" "$action" "applied"
 			;;
 		bootstrap_metadata)
 			now=$(now_utc_iso8601)
 			updated_content=$(update_sync_metadata "$markdown_content" "$now" "$local_hash" "$remote_hash" "$note_path")
 			write_markdown_file "$file_path" "$updated_content" || return 1
 			echo "Metadata initialized"
+			[ "$json_output" = "1" ] || [ "$json_output" = "true" ] && print_action_json "$file_path" "$note_found" "$action" "applied"
 			;;
 		noop)
 			echo "No changes"
@@ -97,6 +106,7 @@ sync_one_file() {
 			fi
 			conflict_file=$(write_conflict_file "$file_path" "$local_body" "$remote_markdown")
 			echo "Conflict written: $conflict_file"
+			[ "$json_output" = "1" ] || [ "$json_output" = "true" ] && print_action_json "$file_path" "$note_found" "$action" "conflict"
 			;;
 		*)
 			echo "Error: Unknown sync action '$action'" >&2
@@ -109,17 +119,32 @@ input_path="${args[file]}"
 base_folder="${args[folder]}"
 auto_create="${args[yes]}"
 dry_run="${args[dry_run]}"
+json_output="${args[json]}"
+
+config_file=$(load_stash_config "$input_path" || true)
+if [ -n "$config_file" ]; then
+	if [ -z "$base_folder" ]; then
+		base_folder=$(get_config_value "$config_file" "apple.base_folder")
+	fi
+	if [ -z "$dry_run" ]; then
+		dry_run=$(get_config_value "$config_file" "sync.dry_run_default")
+	fi
+fi
 
 if [ -f "$input_path" ]; then
 	root_dir=$(dirname "$input_path")
-	sync_one_file "$input_path" "$root_dir" "$base_folder" "$auto_create" "$dry_run"
+	lock_file=$(acquire_lock "$root_dir") || exit 1
+	trap 'release_lock "$lock_file"' EXIT
+	sync_one_file "$input_path" "$root_dir" "$base_folder" "$auto_create" "$dry_run" "$json_output"
 	exit $?
 fi
 
 if [ -d "$input_path" ]; then
+	lock_file=$(acquire_lock "$input_path") || exit 1
+	trap 'release_lock "$lock_file"' EXIT
 	failed=0
 	while IFS= read -r file_path; do
-		sync_one_file "$file_path" "$input_path" "$base_folder" "$auto_create" "$dry_run" || failed=1
+		sync_one_file "$file_path" "$input_path" "$base_folder" "$auto_create" "$dry_run" "$json_output" || failed=1
 	done < <(find "$input_path" -type f -name '*.md' | sort)
 	exit $failed
 fi
