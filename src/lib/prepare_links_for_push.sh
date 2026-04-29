@@ -2,13 +2,15 @@ prepare_links_for_push() {
 	local source_file="$1"
 	local root_dir="$2"
 	local index_data="$3"
+	local input_text
+	input_text=$(cat)
 
 	if [ -z "$source_file" ] || [ -z "$root_dir" ]; then
 		sed -E 's#\]\(([^):][^)]*\.md(#[^)]*)?)\)#](stash-md://\1)#g'
 		return 0
 	fi
 
-	python3 - "$source_file" "$root_dir" "$index_data" <<'PY'
+	python3 - "$source_file" "$root_dir" "$index_data" "$input_text" <<'PY'
 import re
 import sys
 from pathlib import Path
@@ -16,6 +18,7 @@ from pathlib import Path
 source_file = Path(sys.argv[1]).resolve()
 root_dir = Path(sys.argv[2]).resolve()
 index_data = sys.argv[3]
+text = sys.argv[4]
 
 index = {}
 for line in index_data.splitlines():
@@ -23,8 +26,6 @@ for line in index_data.splitlines():
         continue
     rel, note_id = line.split('|', 1)
     index[rel] = note_id
-
-text = sys.stdin.read()
 
 pattern = re.compile(r'\]\(([^)]+)\)')
 

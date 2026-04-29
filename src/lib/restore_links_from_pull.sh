@@ -1,9 +1,12 @@
 restore_links_from_pull() {
-	python3 - <<'PY'
+	local input_text
+	input_text=$(cat)
+
+	python3 - "$input_text" <<'PY'
 import re
 import sys
 
-text = sys.stdin.read()
+text = sys.argv[1]
 
 pattern = re.compile(r'\]\(stash-md://([^)]+)\)')
 

@@ -181,6 +181,35 @@ sync:
 
 CLI flags override config values.
 
+## Implementation status (feature/future-implementation)
+
+Implemented:
+
+- `sync` command for two-way workflows (`--dry-run`, `--yes`, `--folder`).
+- Deterministic sync metadata in frontmatter:
+  - `stash_last_synced_at`
+  - `stash_last_local_hash`
+  - `stash_last_remote_hash`
+  - `stash_note_path`
+- Conflict-safe behavior via `<file>.conflict.md` outputs.
+- Link index based local Markdown link preservation across push/sync/pull.
+- Optional `.stash.yml` defaults for:
+  - `apple.base_folder`
+  - `sync.dry_run_default`
+- JSON action output via `--json`.
+- Sync locking and action logging under `.stash/`.
+- Missing-note policies via `--deletion-policy` (`ignore|archive|propagate`).
+- Optional path mirroring via `--mirror-path`.
+
+Validation done during implementation:
+
+- Shell syntax checks (`bash -n`) for `src/*.sh` and `src/lib/*.sh`.
+- Unit specs added for new helper modules and link/config logic.
+
+Note:
+
+- Full `test/approve` execution requires runtime dependencies (notably `pandoc`) available on the host.
+
 ## Apple Silicon (M1/M2/M3/M4) Quick Start
 
 ```bash
