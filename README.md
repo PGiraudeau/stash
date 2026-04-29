@@ -188,3 +188,10 @@ This will:
 2. Commit the change
 3. Create and push a git tag
 4. Trigger the release workflow (build, publish, update Homebrew formula)
+
+---
+
+## Attribution
+
+Original code and project concept by **Shaked Lokits**: <https://github.com/shakedlokits/stash>
+This repository is a maintained fork.
