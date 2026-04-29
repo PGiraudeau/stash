@@ -16,6 +16,11 @@ commands:
   completions:
   - <file>
 
+  flags:
+  - long: --yes
+    short: -y
+    help: Non-interactive mode, auto-create note if missing
+
   args:
   - name: file
     required: true

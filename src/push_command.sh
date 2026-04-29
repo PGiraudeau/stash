@@ -22,12 +22,16 @@ fi
 # If note not found, prompt user to create new
 if [ -z "$note_found" ]; then
 	echo "Note not found in Apple Notes."
-	echo "Create new note? (y/n)"
-	read -r response
-	
-	if [[ ! "$response" =~ ^[Yy]$ ]]; then
-		echo "Operation cancelled"
-		exit 0
+
+	auto_create="${args[yes]}"
+	if [[ "$auto_create" != "1" && "$auto_create" != "true" && "$auto_create" != "yes" ]]; then
+		echo "Create new note? (y/n)"
+		read -r response
+		
+		if [[ ! "$response" =~ ^[Yy]$ ]]; then
+			echo "Operation cancelled"
+			exit 0
+		fi
 	fi
 	
 	# Strip frontmatter and convert to HTML
