@@ -53,6 +53,28 @@ commands:
     required: true
     help: Path to the Markdown file to compare
 
+- name: sync
+  help: Two-way sync a Markdown file or directory with Apple Notes
+  completions:
+  - <file>
+
+  flags:
+  - long: --yes
+    short: -y
+    help: Non-interactive mode, auto-create note if missing
+  - long: --folder
+    short: -F
+    arg: name
+    help: Base Apple Notes folder path, use ':' to separate nested folders
+  - long: --dry-run
+    short: -n
+    help: Show planned actions without changing files or notes
+
+  args:
+  - name: file
+    required: true
+    help: Path to a Markdown file or directory to sync recursively
+
 - name: completions
   help: |-
     Generate bash completions

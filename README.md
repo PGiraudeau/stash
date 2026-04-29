@@ -53,6 +53,16 @@ Pull changes back from Apple Notes:
 stash pull my-note.md
 ```
 
+Two-way sync (Git-first with conflict-safe behavior):
+```bash
+stash sync notes/ --folder "Projects:Personal"
+```
+
+Preview actions only:
+```bash
+stash sync notes/ --dry-run
+```
+
 Pull a whole folder recursively:
 ```bash
 stash pull notes/
@@ -131,6 +141,15 @@ Don't fret. Simply:
 - When pushing directories, missing Apple Notes folder paths are created automatically.
 - Use `--folder "A:B:C"` to set a base Apple Notes folder.
 - Local Markdown links to other `.md` files are preserved across push/pull roundtrips.
+
+## Sync metadata
+
+`sync` stores metadata in frontmatter to make decisions deterministic:
+
+- `stash_last_synced_at`
+- `stash_last_local_hash`
+- `stash_last_remote_hash`
+- `stash_note_path`
 
 ## Apple Silicon (M1/M2/M3/M4) Quick Start
 
