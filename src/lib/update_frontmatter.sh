@@ -1,11 +1,24 @@
 update_frontmatter() {
 	local content="$1"
 	local apple_notes_id="$2"
-	
-	echo "---"
-	printf "$(echo "$content" | pcregrep -M -o1 '^---\s*([\s\S]*?)\s*^---\n?' | grep -v 'apple_notes_id')\n" | grep .
-	echo "apple_notes_id: $apple_notes_id"
-	echo "---"
-	echo ""
-	echo "$(echo "$content")" | pcregrep -M -v '^---\s*([\s\S]*?)\s*^---\n?'
+	local current_frontmatter
+	local current_body
+	local preserved_frontmatter
+
+	current_frontmatter=$(printf '%s\n' "$content" | extract_frontmatter || true)
+	current_body=$(printf '%s\n' "$content" | strip_frontmatter)
+
+	preserved_frontmatter=$(printf '%s\n' "$current_frontmatter" | grep -v '^[[:space:]]*apple_notes_id:' || true)
+	preserved_frontmatter=$(printf '%s\n' "$preserved_frontmatter" | sed '/^[[:space:]]*$/d')
+
+	{
+		echo "---"
+		if [ -n "$preserved_frontmatter" ]; then
+			printf '%s\n' "$preserved_frontmatter"
+		fi
+		echo "apple_notes_id: $apple_notes_id"
+		echo "---"
+		echo
+		printf '%s\n' "$current_body"
+	}
 }
