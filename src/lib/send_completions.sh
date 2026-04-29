@@ -65,7 +65,7 @@ send_completions() {
   echo $'      ;;'
   echo $''
   echo $'    \'sync\'*)'
-  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_stash_completions_filter "--help -h --yes -y --folder -F --dry-run -n")" -- "$cur")'
+  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_stash_completions_filter "--help -h --yes -y --folder -F --dry-run -n --json --deletion-policy --mirror-path")" -- "$cur")'
   echo $'      ;;'
   echo $''
   echo $'    *)'

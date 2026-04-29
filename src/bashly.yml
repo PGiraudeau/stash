@@ -71,6 +71,11 @@ commands:
     help: Show planned actions without changing files or notes
   - long: --json
     help: Emit action records as JSON lines
+  - long: --deletion-policy
+    arg: mode
+    help: Missing-note behavior (ignore|archive|propagate)
+  - long: --mirror-path
+    help: Move existing notes to match local folder path under --folder base
 
   args:
   - name: file

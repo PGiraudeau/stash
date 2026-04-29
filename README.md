@@ -68,6 +68,18 @@ Emit machine-readable actions:
 stash sync notes/ --json
 ```
 
+Missing-note policy:
+```bash
+stash sync notes/ --deletion-policy ignore
+stash sync notes/ --deletion-policy archive
+stash sync notes/ --deletion-policy propagate
+```
+
+Mirror local directory paths into Apple Notes on push updates:
+```bash
+stash sync notes/ --folder "Projects:Personal" --mirror-path
+```
+
 Pull a whole folder recursively:
 ```bash
 stash pull notes/

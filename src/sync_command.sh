@@ -5,6 +5,8 @@ sync_one_file() {
 	local auto_create="$4"
 	local dry_run="$5"
 	local json_output="$6"
+	local deletion_policy="$7"
+	local mirror_path="$8"
 
 	echo "Reading file: $file_path"
 	markdown_content=$(read_markdown_file "$file_path") || return 1
@@ -39,6 +41,9 @@ sync_one_file() {
 	last_remote_hash=$(read_sync_metadata "$markdown_content" "stash_last_remote_hash")
 
 	action=$(resolve_sync_action "$local_hash" "$remote_hash" "$last_local_hash" "$last_remote_hash" "$has_note")
+	if [ "$has_note" = "0" ] && [ -n "$note_id" ]; then
+		action=$(resolve_missing_note_action "$deletion_policy")
+	fi
 	echo "Action: $action ($file_path)"
 	if [ "$json_output" = "1" ] || [ "$json_output" = "true" ]; then
 		print_action_json "$file_path" "$note_id" "$action" "planned"
@@ -50,6 +55,15 @@ sync_one_file() {
 	fi
 
 	case "$action" in
+		missing_ignore)
+			echo "Missing remote note ignored by policy"
+			[ "$json_output" = "1" ] || [ "$json_output" = "true" ] && print_action_json "$file_path" "$note_id" "$action" "ignored"
+			;;
+		missing_archive)
+			archived_file=$(archive_local_file "$file_path") || return 1
+			echo "Archived local file: $archived_file"
+			[ "$json_output" = "1" ] || [ "$json_output" = "true" ] && print_action_json "$file_path" "$note_id" "$action" "archived"
+			;;
 		create_note)
 			if [[ "$auto_create" != "1" && "$auto_create" != "true" && "$auto_create" != "yes" ]]; then
 				echo "Note not found in Apple Notes. Create new note? (y/n)"
@@ -74,6 +88,12 @@ sync_one_file() {
 		push)
 			html_content=$(echo "$local_body" | prepare_links_for_push "$file_path" "$root_dir" "$link_index" | markdown_to_html)
 			update_note "$note_found" "$html_content" || return 1
+			if [ "$mirror_path" = "1" ] || [ "$mirror_path" = "true" ]; then
+				relative_dir=$(dirname "${file_path#$root_dir/}")
+				target_folder=$(join_apple_folder_path "$base_folder" "$relative_dir")
+				[ -n "$target_folder" ] && move_note_to_folder "$note_found" "$target_folder" >/dev/null
+				note_path="$target_folder"
+			fi
 			now=$(now_utc_iso8601)
 			updated_content=$(update_sync_metadata "$markdown_content" "$now" "$local_hash" "$local_hash" "$note_path")
 			write_markdown_file "$file_path" "$updated_content" || return 1
@@ -120,6 +140,8 @@ base_folder="${args[folder]}"
 auto_create="${args[yes]}"
 dry_run="${args[dry_run]}"
 json_output="${args[json]}"
+deletion_policy="${args[deletion_policy]}"
+mirror_path="${args[mirror_path]}"
 
 config_file=$(load_stash_config "$input_path" || true)
 if [ -n "$config_file" ]; then
@@ -135,7 +157,7 @@ if [ -f "$input_path" ]; then
 	root_dir=$(dirname "$input_path")
 	lock_file=$(acquire_lock "$root_dir") || exit 1
 	trap 'release_lock "$lock_file"' EXIT
-	sync_one_file "$input_path" "$root_dir" "$base_folder" "$auto_create" "$dry_run" "$json_output"
+	sync_one_file "$input_path" "$root_dir" "$base_folder" "$auto_create" "$dry_run" "$json_output" "$deletion_policy" "$mirror_path"
 	exit $?
 fi
 
@@ -144,7 +166,7 @@ if [ -d "$input_path" ]; then
 	trap 'release_lock "$lock_file"' EXIT
 	failed=0
 	while IFS= read -r file_path; do
-		sync_one_file "$file_path" "$input_path" "$base_folder" "$auto_create" "$dry_run" "$json_output" || failed=1
+		sync_one_file "$file_path" "$input_path" "$base_folder" "$auto_create" "$dry_run" "$json_output" "$deletion_policy" "$mirror_path" || failed=1
 	done < <(find "$input_path" -type f -name '*.md' | sort)
 	exit $failed
 fi
