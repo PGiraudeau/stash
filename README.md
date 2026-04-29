@@ -108,12 +108,11 @@ Don't fret. Simply:
 - **macOS** with Apple Notes
 - **Bash 5+**
 - **[Pandoc](https://pandoc.org/installing.html)** for Markdown ↔ HTML conversion
-- **pcregrep** for frontmatter parsing (usually pre-installed on macOS, or install via `brew install pcre`)
 
 ## Apple Silicon (M1/M2/M3/M4) Quick Start
 
 ```bash
-brew install bash pandoc pcre
+brew install bash pandoc
 echo 'export PATH="/opt/homebrew/bin:$PATH"' >> ~/.zprofile
 source ~/.zprofile
 stash --version

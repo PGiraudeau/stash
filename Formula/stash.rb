@@ -6,7 +6,6 @@ class Stash < Formula
   license "GPL-3.0-or-later"
 
   depends_on "pandoc"
-  depends_on "pcre"
   depends_on "bash"
   depends_on :macos
 

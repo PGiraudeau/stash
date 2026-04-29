@@ -12,7 +12,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Install dependencies
-        run: brew install pcre pandoc bash
+        run: brew install pandoc bash
 
       - name: Install bashly
         run: gem install bashly
@@ -33,7 +33,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Install dependencies
-        run: brew install pcre pandoc bash
+        run: brew install pandoc bash
 
       - name: Install bashly
         run: gem install bashly

@@ -16,12 +16,10 @@ smoke-local:
 	@echo "Checking local runtime dependencies..."
 	@command -v bash >/dev/null || (echo "Missing: bash" && exit 1)
 	@command -v pandoc >/dev/null || (echo "Missing: pandoc" && exit 1)
-	@command -v pcregrep >/dev/null || (echo "Missing: pcregrep (install pcre)" && exit 1)
 	@command -v osascript >/dev/null || (echo "Missing: osascript (requires macOS)" && exit 1)
 	@echo "Architecture: $$(uname -m)"
 	@echo "bash: $$(bash --version | head -n 1)"
 	@echo "pandoc: $$(pandoc --version | head -n 1)"
-	@echo "pcregrep: $$(pcregrep -V | head -n 1)"
 	@echo "osascript: available"
 	@echo "Smoke check passed"
 
