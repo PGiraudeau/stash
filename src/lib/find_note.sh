@@ -1,5 +1,6 @@
 find_note() {
 	local note_id="$1"
+	validate_note_id "$note_id" || return 1
 	
 	result=$(osascript 2>&1 <<EOF
 tell application "Notes"

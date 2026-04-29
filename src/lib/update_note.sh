@@ -1,6 +1,7 @@
 update_note() {
 	local note_id="$1"
 	local html_content="$2"
+	validate_note_id "$note_id" || return 1
 	
 	# Escape double quotes for AppleScript string
 	local escaped_content="${html_content//\"/\\\"}"
