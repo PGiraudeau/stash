@@ -9,7 +9,7 @@ dependencies:
 
 commands:
 - name: push
-  help: Push a Markdown file to Apple Notes (create or update)
+  help: Push a Markdown file or directory to Apple Notes (create or update)
   completions:
   - <file>
 
@@ -17,21 +17,31 @@ commands:
   - long: --yes
     short: -y
     help: Non-interactive mode, auto-create note if missing
+  - long: --folder
+    short: -F
+    arg: name
+    help: Base Apple Notes folder path, use ':' to separate nested folders
 
   args:
   - name: file
     required: true
-    help: Path to the Markdown file to push
+    help: Path to a Markdown file or directory to push recursively
 
 - name: pull
-  help: Pull content from Apple Notes to a Markdown file
+  help: Pull content from Apple Notes to a Markdown file or directory
   completions:
   - <file>
 
+  flags:
+  - long: --folder
+    short: -F
+    arg: name
+    help: Base Apple Notes folder path hint for directory sync
+
   args:
   - name: file
     required: true
-    help: Path to the Markdown file to update
+    help: Path to a Markdown file or directory to update recursively
 
 - name: diff
   help: Show differences between a Markdown file and its linked Apple Note

@@ -38,9 +38,24 @@ Push a markdown file to Apple Notes:
 stash push my-note.md
 ```
 
+Push a whole folder recursively:
+```bash
+stash push notes/
+```
+
+Push to a target Apple Notes base folder:
+```bash
+stash push notes/ --folder "Projects:Personal"
+```
+
 Pull changes back from Apple Notes:
 ```bash
 stash pull my-note.md
+```
+
+Pull a whole folder recursively:
+```bash
+stash pull notes/
 ```
 
 That's it! The tool uses front-matter to track which Apple Note corresponds to your file.
@@ -108,6 +123,14 @@ Don't fret. Simply:
 - **macOS** with Apple Notes
 - **Bash 5+**
 - **[Pandoc](https://pandoc.org/installing.html)** for Markdown ↔ HTML conversion
+
+## Folder Sync and Local Links
+
+- `push` and `pull` accept either a file or a directory.
+- Directory sync is recursive for all `*.md` files.
+- When pushing directories, missing Apple Notes folder paths are created automatically.
+- Use `--folder "A:B:C"` to set a base Apple Notes folder.
+- Local Markdown links to other `.md` files are preserved across push/pull roundtrips.
 
 ## Apple Silicon (M1/M2/M3/M4) Quick Start
 
