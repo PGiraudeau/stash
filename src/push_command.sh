@@ -15,6 +15,8 @@ push_one_file() {
 		note_found=$(find_note "$note_id") || true
 	fi
 
+	link_index=$(build_note_index "$root_dir" || true)
+
 	if [ -z "$note_found" ]; then
 		echo "Note not found in Apple Notes."
 		if [[ "$auto_create" != "1" && "$auto_create" != "true" && "$auto_create" != "yes" ]]; then
@@ -29,7 +31,7 @@ push_one_file() {
 		echo "Creating note..."
 		relative_dir=$(dirname "${file_path#$root_dir/}")
 		target_folder=$(join_apple_folder_path "$base_folder" "$relative_dir")
-		html_content=$(echo "$markdown_content" | strip_frontmatter | prepare_links_for_push | markdown_to_html)
+		html_content=$(echo "$markdown_content" | strip_frontmatter | prepare_links_for_push "$file_path" "$root_dir" "$link_index" | markdown_to_html)
 
 		new_note_id=$(create_note "$html_content" "$target_folder")
 		if [ -z "$new_note_id" ]; then
@@ -42,7 +44,7 @@ push_one_file() {
 		echo "Note created: $new_note_id"
 	else
 		echo "Updating note..."
-		html_content=$(echo "$markdown_content" | strip_frontmatter | prepare_links_for_push | markdown_to_html)
+		html_content=$(echo "$markdown_content" | strip_frontmatter | prepare_links_for_push "$file_path" "$root_dir" "$link_index" | markdown_to_html)
 		if ! update_note "$note_found" "$html_content"; then
 			echo "Error: Failed to update note" >&2
 			return 1

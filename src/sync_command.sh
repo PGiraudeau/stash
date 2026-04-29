@@ -11,6 +11,7 @@ sync_one_file() {
 	local_hash=$(compute_content_hash "$local_body")
 
 	note_id=$(get_id_from_frontmatter "$markdown_content") || true
+	link_index=$(build_note_index "$root_dir" || true)
 	note_found=""
 	has_note=0
 	if [ -n "$note_id" ]; then
@@ -56,7 +57,7 @@ sync_one_file() {
 
 			relative_dir=$(dirname "${file_path#$root_dir/}")
 			target_folder=$(join_apple_folder_path "$base_folder" "$relative_dir")
-			html_content=$(echo "$local_body" | prepare_links_for_push | markdown_to_html)
+			html_content=$(echo "$local_body" | prepare_links_for_push "$file_path" "$root_dir" "$link_index" | markdown_to_html)
 			new_note_id=$(create_note "$html_content" "$target_folder") || return 1
 			updated_content=$(update_frontmatter "$markdown_content" "$new_note_id")
 			now=$(now_utc_iso8601)
@@ -65,7 +66,7 @@ sync_one_file() {
 			echo "Note created: $new_note_id"
 			;;
 		push)
-			html_content=$(echo "$local_body" | prepare_links_for_push | markdown_to_html)
+			html_content=$(echo "$local_body" | prepare_links_for_push "$file_path" "$root_dir" "$link_index" | markdown_to_html)
 			update_note "$note_found" "$html_content" || return 1
 			now=$(now_utc_iso8601)
 			updated_content=$(update_sync_metadata "$markdown_content" "$now" "$local_hash" "$local_hash" "$note_path")
