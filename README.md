@@ -15,6 +15,11 @@ Bidirectionally sync Markdown files with Apple Notes!
 ### Installation
 
 ```bash
+> Fork
+brew tap PGiraudeau/stash https://github.com/PGiraudeau/stash
+brew install PGiraudeau/stash/stash
+
+> Original Creator and Branch
 brew tap shakedlokits/stash https://github.com/shakedlokits/stash
 brew install shakedlokits/stash/stash
 ```
