@@ -1,4 +1,4 @@
-# Future implementation
+# Implementation roadmap and status
 
 ## Goal
 
@@ -167,7 +167,7 @@ In Git workflows, files move often. We should keep note identity stable and avoi
 
 ### Approach
 - If file moved but still carries same `apple_notes_id`, update `stash_note_path` metadata.
-- On push, optionally move note into new Apple folder path if `--mirror-path` (future flag) enabled.
+- On push, optionally move note into new Apple folder path if `--mirror-path` is enabled.
 
 Status update:
 - `--mirror-path` implemented for optional note folder path mirroring.
@@ -308,8 +308,8 @@ Status: ✅ Implemented (`--materialize-remote`, canonical `stash-md://` preserv
 stash sync notes/ --folder "Projects:Personal"
 stash sync notes/ --dry-run
 stash sync notes/ --json
-stash sync notes/ --conflict file
 stash sync notes/ --deletion-policy archive
+stash sync notes/ --materialize-remote
 ```
 
 (Keep `push`, `pull`, `diff` for explicit/manual workflows.)
