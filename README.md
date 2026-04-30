@@ -24,6 +24,15 @@ brew tap shakedlokits/stash https://github.com/shakedlokits/stash
 brew install shakedlokits/stash/stash
 ```
 
+Pre-merge branch testing (recommended):
+
+```bash
+git clone --branch feature/future-implementation https://github.com/PGiraudeau/stash.git
+cd stash
+docker run --rm --user $(id -u):$(id -g) --volume "$PWD:/app" dannyben/bashly generate
+./dist/stash --version
+```
+
 Apple Silicon note:
 
 ```bash
@@ -38,9 +47,56 @@ Push a markdown file to Apple Notes:
 stash push my-note.md
 ```
 
+Push a whole folder recursively:
+```bash
+stash push notes/
+```
+
+Push to a target Apple Notes base folder:
+```bash
+stash push notes/ --folder "Projects:Personal"
+```
+
 Pull changes back from Apple Notes:
 ```bash
 stash pull my-note.md
+```
+
+Two-way sync (Git-first with conflict-safe behavior):
+```bash
+stash sync notes/ --folder "Projects:Personal"
+```
+
+Preview actions only:
+```bash
+stash sync notes/ --dry-run
+```
+
+Emit machine-readable actions:
+```bash
+stash sync notes/ --json
+```
+
+Missing-note policy:
+```bash
+stash sync notes/ --deletion-policy ignore
+stash sync notes/ --deletion-policy archive
+stash sync notes/ --deletion-policy propagate
+```
+
+Mirror local directory paths into Apple Notes on push updates:
+```bash
+stash sync notes/ --folder "Projects:Personal" --mirror-path
+```
+
+Materialize missing local files from Apple Notes before syncing (folder mode):
+```bash
+stash sync notes/ --folder "Projects:Personal" --materialize-remote
+```
+
+Pull a whole folder recursively:
+```bash
+stash pull notes/
 ```
 
 That's it! The tool uses front-matter to track which Apple Note corresponds to your file.
@@ -108,6 +164,77 @@ Don't fret. Simply:
 - **macOS** with Apple Notes
 - **Bash 5+**
 - **[Pandoc](https://pandoc.org/installing.html)** for Markdown ↔ HTML conversion
+
+## Folder Sync and Local Links
+
+- `push` and `pull` accept either a file or a directory.
+- Directory sync is recursive for all `*.md` files.
+- When pushing directories, missing Apple Notes folder paths are created automatically.
+- Use `--folder "A:B:C"` to set a base Apple Notes folder.
+- Local Markdown links to other `.md` files are preserved across push/pull roundtrips.
+- Relative asset links (for example images/files) are preserved across push/sync/pull roundtrips.
+
+Canonical roundtrip forms used internally:
+
+- Note links: `stash-md://...` (with optional `?note_id=...`)
+- Asset links: `stash-asset://...`
+
+These forms are used during sync conversion to keep link intent stable across directions.
+
+## Sync metadata
+
+`sync` stores metadata in frontmatter to make decisions deterministic:
+
+- `stash_last_synced_at`
+- `stash_last_local_hash`
+- `stash_last_remote_hash`
+- `stash_note_path`
+
+## Optional repository config
+
+You can define defaults in `.stash.yml`:
+
+```yaml
+apple:
+  base_folder: Projects:Personal
+sync:
+  dry_run_default: false
+```
+
+CLI flags override config values.
+
+## Implementation status (feature/future-implementation)
+
+Implemented:
+
+- `sync` command for two-way workflows (`--dry-run`, `--yes`, `--folder`).
+- Deterministic sync metadata in frontmatter:
+  - `stash_last_synced_at`
+  - `stash_last_local_hash`
+  - `stash_last_remote_hash`
+  - `stash_note_path`
+- Conflict-safe behavior via `<file>.conflict.md` outputs.
+- Link index based local Markdown link preservation across push/sync/pull.
+- Optional `.stash.yml` defaults for:
+  - `apple.base_folder`
+  - `sync.dry_run_default`
+- JSON action output via `--json`.
+- Sync locking and action logging under `.stash/`.
+- Missing-note policies via `--deletion-policy` (`ignore|archive|propagate`).
+- Optional path mirroring via `--mirror-path`.
+- Optional remote tree materialization via `--materialize-remote` (create missing local files from Notes before sync).
+- Canonical link persistence on pull for note links (`stash-md://...`) with `note_id` hints retained.
+- Asset link roundtrip support via `stash-asset://...` internal form.
+- Safer remote materialization filename handling (collision suffixing).
+
+Validation done during implementation:
+
+- Shell syntax checks (`bash -n`) for `src/*.sh` and `src/lib/*.sh`.
+- Unit specs added for new helper modules and link/config logic.
+
+Note:
+
+- Full `test/approve` execution requires runtime dependencies (notably `pandoc`) available on the host.
 
 ## Apple Silicon (M1/M2/M3/M4) Quick Start
 

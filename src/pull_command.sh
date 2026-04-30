@@ -1,46 +1,65 @@
-# Read markdown file
-file_path="${args[file]}"
+pull_one_file() {
+	local file_path="$1"
+	local base_folder="$2"
 
-if [ ! -f "$file_path" ]; then
-	echo "Error: File not found: $file_path" >&2
-	exit 1
+	echo "Reading file: $file_path"
+	markdown_content=$(read_markdown_file "$file_path")
+
+	note_id=$(get_id_from_frontmatter "$markdown_content")
+	if [ -z "$note_id" ]; then
+		echo "Error: No apple_notes_id found in frontmatter: $file_path" >&2
+		return 1
+	fi
+
+	echo "Searching for note..."
+	if ! find_note "$note_id" > /dev/null; then
+		echo "Error: Note not found in Apple Notes: $file_path" >&2
+		return 1
+	fi
+
+	if [ -n "$base_folder" ]; then
+		note_folder_path=$(get_note_folder_path "$note_id") || {
+			echo "Error: Failed to resolve note folder path: $file_path" >&2
+			return 1
+		}
+		case "$note_folder_path" in
+			"$base_folder"|"$base_folder":*) ;;
+			*)
+				echo "Error: Note is outside base folder '$base_folder': $file_path" >&2
+				return 1
+				;;
+		esac
+	fi
+
+	echo "Reading note content..."
+	html_content=$(read_note "$note_id")
+	if [ -z "$html_content" ]; then
+		echo "Error: Failed to read note content: $file_path" >&2
+		return 1
+	fi
+
+	markdown_body=$(echo "$html_content" | html_to_markdown | restore_links_from_pull)
+	frontmatter=$(echo "$markdown_content" | extract_frontmatter)
+	updated_content=$(printf '%s\n\n%s' "$frontmatter" "$markdown_body")
+	write_markdown_file "$file_path" "$updated_content"
+	echo "File updated: $file_path"
+}
+
+input_path="${args[file]}"
+base_folder="${args[folder]}"
+
+if [ -f "$input_path" ]; then
+	pull_one_file "$input_path" "$base_folder"
+	exit $?
 fi
 
-echo "Reading file: $file_path"
-markdown_content=$(read_markdown_file "$file_path")
-
-# Extract ID from frontmatter (required for pull)
-note_id=$(get_id_from_frontmatter "$markdown_content")
-if [ -z "$note_id" ]; then
-	echo "Error: No apple_notes_id found in frontmatter" >&2
-	exit 1
+if [ -d "$input_path" ]; then
+	failed=0
+	while IFS= read -r file_path; do
+		pull_one_file "$file_path" "$base_folder" || failed=1
+	done < <(find "$input_path" -type f -name '*.md' | sort)
+	exit $failed
 fi
 
-# Find note in Apple Notes
-echo "Searching for note..."
-if ! find_note "$note_id" > /dev/null; then
-	echo "Error: Note not found in Apple Notes" >&2
-	exit 1
-fi
-
-# Read note content
-echo "Reading note content..."
-html_content=$(read_note "$note_id")
-if [ -z "$html_content" ]; then
-	echo "Error: Failed to read note content" >&2
-	exit 1
-fi
-
-# Convert HTML to Markdown
-markdown_body=$(echo "$html_content" | html_to_markdown)
-
-# Extract existing frontmatter and rebuild file content
-frontmatter=$(echo "$markdown_content" | extract_frontmatter)
-
-# Combine: frontmatter + empty line + markdown body
-updated_content=$(printf '%s\n\n%s' "$frontmatter" "$markdown_body")
-
-# Write back to file
-write_markdown_file "$file_path" "$updated_content"
-
-echo "File updated: $file_path"
+echo "Error: Path not found: $input_path" >&2
+exit 1
