@@ -24,10 +24,13 @@ brew tap shakedlokits/stash https://github.com/shakedlokits/stash
 brew install shakedlokits/stash/stash
 ```
 
-Install directly from the feature branch formula (useful for pre-merge testing):
+Pre-merge branch testing (recommended):
 
 ```bash
-brew install --formula https://raw.githubusercontent.com/PGiraudeau/stash/feature/future-implementation/Formula/stash.rb
+git clone --branch feature/future-implementation https://github.com/PGiraudeau/stash.git
+cd stash
+docker run --rm --user $(id -u):$(id -g) --volume "$PWD:/app" dannyben/bashly generate
+./dist/stash --version
 ```
 
 Apple Silicon note:
