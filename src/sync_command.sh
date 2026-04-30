@@ -1,3 +1,81 @@
+slugify_note_name() {
+	local name="$1"
+	local slug
+	slug=$(printf '%s' "$name" | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9]+/-/g; s/^-+//; s/-+$//')
+	[ -n "$slug" ] || slug="untitled-note"
+	echo "$slug"
+}
+
+materialize_remote_tree() {
+	local root_dir="$1"
+	local base_folder="$2"
+	local dry_run="$3"
+	local json_output="$4"
+
+	remote_rows=$(list_notes_in_folder "$base_folder" || true)
+	[ -n "$remote_rows" ] || return 0
+
+	while IFS= read -r row; do
+		[ -n "$row" ] || continue
+		note_id=$(printf '%s' "$row" | cut -d'|' -f1)
+		note_path=$(printf '%s' "$row" | cut -d'|' -f2)
+		note_name=$(printf '%s' "$row" | cut -d'|' -f3-)
+		validate_note_id "$note_id" || continue
+
+		existing_file=$(find_file_by_note_id "$root_dir" "$note_id" || true)
+		if [ -n "$existing_file" ]; then
+			continue
+		fi
+
+		rel_dir="$note_path"
+		if [ -n "$base_folder" ]; then
+			case "$note_path" in
+				"$base_folder") rel_dir="" ;;
+				"$base_folder":*) rel_dir="${note_path#${base_folder}:}" ;;
+				*) rel_dir="$note_path" ;;
+			esac
+		fi
+
+		rel_dir_fs=$(printf '%s' "$rel_dir" | tr ':' '/')
+		file_name="$(slugify_note_name "$note_name").md"
+		if [ -n "$rel_dir_fs" ]; then
+			target_dir="$root_dir/$rel_dir_fs"
+		else
+			target_dir="$root_dir"
+		fi
+		target_file="$target_dir/$file_name"
+
+		action="materialize_remote"
+		if [ "$json_output" = "1" ] || [ "$json_output" = "true" ]; then
+			print_action_json "$target_file" "$note_id" "$action" "planned"
+		fi
+		log_action "$root_dir" "{\"file\":\"$target_file\",\"note_id\":\"$note_id\",\"action\":\"$action\",\"dry_run\":\"$dry_run\"}"
+
+		if [ "$dry_run" = "1" ] || [ "$dry_run" = "true" ]; then
+			continue
+		fi
+
+		mkdir -p "$target_dir" || return 1
+		html_content=$(read_note "$note_id") || continue
+		remote_markdown=$(echo "$html_content" | html_to_markdown | restore_links_from_pull)
+		remote_hash=$(compute_content_hash "$remote_markdown")
+		now=$(now_utc_iso8601)
+		content=$(printf '%s\n' "---")
+		content+=$(printf '%s\n' "apple_notes_id: $note_id")
+		content+=$(printf '%s\n' "stash_last_synced_at: $now")
+		content+=$(printf '%s\n' "stash_last_local_hash: $remote_hash")
+		content+=$(printf '%s\n' "stash_last_remote_hash: $remote_hash")
+		content+=$(printf '%s\n' "stash_note_path: $note_path")
+		content+=$(printf '%s\n\n' "---")
+		content+=$(printf '%s\n' "$remote_markdown")
+		write_markdown_file "$target_file" "$content" || return 1
+		echo "Materialized remote note: $target_file"
+		if [ "$json_output" = "1" ] || [ "$json_output" = "true" ]; then
+			print_action_json "$target_file" "$note_id" "$action" "applied"
+		fi
+	done <<< "$remote_rows"
+}
+
 sync_one_file() {
 	local file_path="$1"
 	local root_dir="$2"
@@ -39,6 +117,7 @@ sync_one_file() {
 
 	last_local_hash=$(read_sync_metadata "$markdown_content" "stash_last_local_hash")
 	last_remote_hash=$(read_sync_metadata "$markdown_content" "stash_last_remote_hash")
+	last_note_path=$(read_sync_metadata "$markdown_content" "stash_note_path")
 
 	action=$(resolve_sync_action "$local_hash" "$remote_hash" "$last_local_hash" "$last_remote_hash" "$has_note")
 	if [ "$has_note" = "0" ] && [ -n "$note_id" ]; then
@@ -49,6 +128,11 @@ sync_one_file() {
 		print_action_json "$file_path" "$note_id" "$action" "planned"
 	fi
 	log_action "$root_dir" "{\"file\":\"$file_path\",\"action\":\"$action\",\"dry_run\":\"$dry_run\"}"
+
+	if [ "$has_note" = "1" ] && [ -n "$last_note_path" ] && [ "$last_note_path" != "$note_path" ]; then
+		echo "Detected remote folder move: $last_note_path -> $note_path"
+		log_action "$root_dir" "{\"file\":\"$file_path\",\"note_id\":\"$note_id\",\"action\":\"remote_path_changed\",\"from\":\"$last_note_path\",\"to\":\"$note_path\"}"
+	fi
 
 	if [ "$dry_run" = "1" ] || [ "$dry_run" = "true" ]; then
 		return 0
@@ -117,7 +201,14 @@ sync_one_file() {
 			[ "$json_output" = "1" ] || [ "$json_output" = "true" ] && print_action_json "$file_path" "$note_found" "$action" "applied"
 			;;
 		noop)
-			echo "No changes"
+			if [ "$has_note" = "1" ] && [ -n "$note_path" ] && [ "$last_note_path" != "$note_path" ]; then
+				now=$(now_utc_iso8601)
+				updated_content=$(update_sync_metadata "$markdown_content" "$now" "$local_hash" "$remote_hash" "$note_path")
+				write_markdown_file "$file_path" "$updated_content" || return 1
+				echo "Updated sync metadata for remote folder move"
+			else
+				echo "No changes"
+			fi
 			;;
 		conflict)
 			if [ "$has_note" != "1" ]; then
@@ -142,6 +233,7 @@ dry_run="${args[dry_run]}"
 json_output="${args[json]}"
 deletion_policy="${args[deletion_policy]}"
 mirror_path="${args[mirror_path]}"
+materialize_remote="${args[materialize_remote]}"
 
 config_file=$(load_stash_config "$input_path" || true)
 if [ -n "$config_file" ]; then
@@ -165,6 +257,9 @@ if [ -d "$input_path" ]; then
 	lock_file=$(acquire_lock "$input_path") || exit 1
 	trap 'release_lock "$lock_file"' EXIT
 	failed=0
+	if [ "$materialize_remote" = "1" ] || [ "$materialize_remote" = "true" ]; then
+		materialize_remote_tree "$input_path" "$base_folder" "$dry_run" "$json_output" || failed=1
+	fi
 	while IFS= read -r file_path; do
 		sync_one_file "$file_path" "$input_path" "$base_folder" "$auto_create" "$dry_run" "$json_output" "$deletion_policy" "$mirror_path" || failed=1
 	done < <(find "$input_path" -type f -name '*.md' | sort)

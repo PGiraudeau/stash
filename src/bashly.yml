@@ -76,6 +76,8 @@ commands:
     help: Missing-note behavior (ignore|archive|propagate)
   - long: --mirror-path
     help: Move existing notes to match local folder path under --folder base
+  - long: --materialize-remote
+    help: Discover notes under --folder and create missing local markdown files before sync
 
   args:
   - name: file
