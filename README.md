@@ -24,6 +24,12 @@ brew tap shakedlokits/stash https://github.com/shakedlokits/stash
 brew install shakedlokits/stash/stash
 ```
 
+Install directly from the feature branch formula (useful for pre-merge testing):
+
+```bash
+brew install --formula https://raw.githubusercontent.com/PGiraudeau/stash/feature/future-implementation/Formula/stash.rb
+```
+
 Apple Silicon note:
 
 ```bash
@@ -165,6 +171,13 @@ Don't fret. Simply:
 - Local Markdown links to other `.md` files are preserved across push/pull roundtrips.
 - Relative asset links (for example images/files) are preserved across push/sync/pull roundtrips.
 
+Canonical roundtrip forms used internally:
+
+- Note links: `stash-md://...` (with optional `?note_id=...`)
+- Asset links: `stash-asset://...`
+
+These forms are used during sync conversion to keep link intent stable across directions.
+
 ## Sync metadata
 
 `sync` stores metadata in frontmatter to make decisions deterministic:
@@ -206,6 +219,10 @@ Implemented:
 - Sync locking and action logging under `.stash/`.
 - Missing-note policies via `--deletion-policy` (`ignore|archive|propagate`).
 - Optional path mirroring via `--mirror-path`.
+- Optional remote tree materialization via `--materialize-remote` (create missing local files from Notes before sync).
+- Canonical link persistence on pull for note links (`stash-md://...`) with `note_id` hints retained.
+- Asset link roundtrip support via `stash-asset://...` internal form.
+- Safer remote materialization filename handling (collision suffixing).
 
 Validation done during implementation:
 

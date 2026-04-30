@@ -119,6 +119,10 @@ Resolve target file, then:
 ### Pull link transform
 Convert back to relative markdown links according to local file location.
 
+Status update:
+- Note links now preserve canonical `stash-md://...` form on pull (including `note_id` hints).
+- Asset links now roundtrip through canonical `stash-asset://...` form.
+
 ### Safety
 If target note/file missing, keep original markdown link unchanged and warn.
 
@@ -164,6 +168,10 @@ In Git workflows, files move often. We should keep note identity stable and avoi
 ### Approach
 - If file moved but still carries same `apple_notes_id`, update `stash_note_path` metadata.
 - On push, optionally move note into new Apple folder path if `--mirror-path` (future flag) enabled.
+
+Status update:
+- `--mirror-path` implemented for optional note folder path mirroring.
+- Remote folder path change detection now updates sync metadata even on no-op content sync.
 
 ---
 
@@ -233,6 +241,10 @@ Current tests are strong for single-file flows, but new behavior needs broader c
 - note path validation
 - roundtrip links in realistic notes
 
+Status update:
+- Added targeted approval coverage for asset link roundtrip and canonical link handling.
+- Full integration/e2e execution still requires macOS host tooling (`osascript`, build tooling) and approvals refresh in that environment.
+
 ---
 
 ## Implementation plan (phased)
@@ -277,6 +289,16 @@ Status: ✅ Implemented (core subset: `.stash.yml` defaults, lock, log, `--json`
 Deliverable: complete lifecycle sync.
 
 Status: ✅ Implemented (missing-note policies + optional path mirroring)
+
+## Phase 5: P0 hardening for full-folder bi-directional workflows
+1. Preserve canonical note links with `note_id` hints across pull/sync.
+2. Materialize remote Notes subtree locally before sync when requested.
+3. Add safer filename collision handling during remote materialization.
+4. Add canonical asset link roundtrip handling.
+
+Deliverable: robust folder-level workflows (GitLab/Notes) with stable links and reduced drift.
+
+Status: ✅ Implemented (`--materialize-remote`, canonical `stash-md://` preservation, `stash-asset://` roundtrip, collision suffixing)
 
 ---
 
