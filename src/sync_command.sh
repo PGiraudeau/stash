@@ -6,6 +6,40 @@ slugify_note_name() {
 	echo "$slug"
 }
 
+short_note_id() {
+	local note_id="$1"
+	printf '%s' "$note_id" | sed -E 's#^.*/##' | tr -cd '[:alnum:]' | cut -c1-8
+}
+
+unique_target_file_for_note() {
+	local target_file="$1"
+	local note_id="$2"
+
+	if [ ! -f "$target_file" ]; then
+		echo "$target_file"
+		return 0
+	fi
+
+	local existing
+	existing=$(read_markdown_file "$target_file" 2>/dev/null || true)
+	local existing_id
+	existing_id=$(get_id_from_frontmatter "$existing" 2>/dev/null || true)
+	if [ "$existing_id" = "$note_id" ]; then
+		echo "$target_file"
+		return 0
+	fi
+
+	local base ext suffix
+	base="${target_file%.md}"
+	ext=".md"
+	suffix=$(short_note_id "$note_id")
+	if [ -n "$suffix" ]; then
+		echo "${base}-${suffix}${ext}"
+	else
+		echo "${base}-remote${ext}"
+	fi
+}
+
 materialize_remote_tree() {
 	local root_dir="$1"
 	local base_folder="$2"
@@ -44,6 +78,7 @@ materialize_remote_tree() {
 			target_dir="$root_dir"
 		fi
 		target_file="$target_dir/$file_name"
+		target_file=$(unique_target_file_for_note "$target_file" "$note_id")
 
 		action="materialize_remote"
 		if [ "$json_output" = "1" ] || [ "$json_output" = "true" ]; then

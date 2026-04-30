@@ -6,8 +6,32 @@ prepare_links_for_push() {
 	input_text=$(cat)
 
 	if [ -z "$source_file" ] || [ -z "$root_dir" ]; then
-		sed -E 's#\]\(([^):][^)]*\.md(#[^)]*)?)\)#](stash-md://\1)#g' | \
-		sed -E 's#\]\(([^):][^)]*\.[^)]*)\)#](stash-asset://\1)#g'
+		python3 - "$index_data" "$input_text" <<'PY'
+import re
+import sys
+
+text = sys.argv[2]
+
+pattern = re.compile(r'\]\(([^)]+)\)')
+
+def repl(m):
+    raw = m.group(1)
+    if '://' in raw or raw.startswith('#'):
+        return m.group(0)
+
+    target = raw
+    anchor = ''
+    if '#' in raw:
+        target, anchor = raw.split('#', 1)
+        anchor = '#' + anchor
+
+    if target.endswith('.md'):
+        return f'](stash-md://{target}{anchor})'
+
+    return f'](stash-asset://{target}{anchor})'
+
+sys.stdout.write(pattern.sub(repl, text))
+PY
 		return 0
 	fi
 
