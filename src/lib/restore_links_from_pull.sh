@@ -8,12 +8,19 @@ import sys
 
 text = sys.argv[1]
 
-pattern = re.compile(r'\]\(stash-md://([^)]+)\)')
+md_pattern = re.compile(r'\]\(stash-md://([^)]+)\)')
+asset_pattern = re.compile(r'\]\(stash-asset://([^)]+)\)')
 
-def repl(m):
+def md_repl(m):
+    payload = m.group(1)
+    return f'](stash-md://{payload})'
+
+def asset_repl(m):
     payload = m.group(1)
     return f']({payload})'
 
-sys.stdout.write(pattern.sub(repl, text))
+out = md_pattern.sub(md_repl, text)
+out = asset_pattern.sub(asset_repl, out)
+sys.stdout.write(out)
 PY
 }

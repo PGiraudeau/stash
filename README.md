@@ -80,6 +80,11 @@ Mirror local directory paths into Apple Notes on push updates:
 stash sync notes/ --folder "Projects:Personal" --mirror-path
 ```
 
+Materialize missing local files from Apple Notes before syncing (folder mode):
+```bash
+stash sync notes/ --folder "Projects:Personal" --materialize-remote
+```
+
 Pull a whole folder recursively:
 ```bash
 stash pull notes/
@@ -158,6 +163,7 @@ Don't fret. Simply:
 - When pushing directories, missing Apple Notes folder paths are created automatically.
 - Use `--folder "A:B:C"` to set a base Apple Notes folder.
 - Local Markdown links to other `.md` files are preserved across push/pull roundtrips.
+- Relative asset links (for example images/files) are preserved across push/sync/pull roundtrips.
 
 ## Sync metadata
 

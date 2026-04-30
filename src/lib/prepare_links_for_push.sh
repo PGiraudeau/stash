@@ -6,7 +6,8 @@ prepare_links_for_push() {
 	input_text=$(cat)
 
 	if [ -z "$source_file" ] || [ -z "$root_dir" ]; then
-		sed -E 's#\]\(([^):][^)]*\.md(#[^)]*)?)\)#](stash-md://\1)#g'
+		sed -E 's#\]\(([^):][^)]*\.md(#[^)]*)?)\)#](stash-md://\1)#g' | \
+		sed -E 's#\]\(([^):][^)]*\.[^)]*)\)#](stash-asset://\1)#g'
 		return 0
 	fi
 
@@ -40,19 +41,19 @@ def repl(m):
         target, anchor = raw.split('#', 1)
         anchor = '#' + anchor
 
-    if not target.endswith('.md'):
-        return m.group(0)
-
     candidate = (source_file.parent / target).resolve()
     try:
         rel = str(candidate.relative_to(root_dir))
     except ValueError:
         return m.group(0)
 
-    note_id = index.get(rel)
-    if note_id:
-        return f'](stash-md://{rel}?note_id={note_id}{anchor})'
-    return f'](stash-md://{target}{anchor})'
+    if target.endswith('.md'):
+        note_id = index.get(rel)
+        if note_id:
+            return f'](stash-md://{rel}?note_id={note_id}{anchor})'
+        return f'](stash-md://{target}{anchor})'
+
+    return f'](stash-asset://{rel}{anchor})'
 
 sys.stdout.write(pattern.sub(repl, text))
 PY
