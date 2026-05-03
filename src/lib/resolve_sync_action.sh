@@ -11,11 +11,7 @@ resolve_sync_action() {
 	fi
 
 	if [ -z "$last_local_hash" ] || [ -z "$last_remote_hash" ]; then
-		if [ "$local_hash" = "$remote_hash" ]; then
-			echo "bootstrap_metadata"
-		else
-			echo "conflict"
-		fi
+		echo "bootstrap_metadata"
 		return 0
 	fi
 
