@@ -1,8 +1,8 @@
 validate_note_id() {
 	local note_id="$1"
+	local pattern='^x-coredata://[^[:space:]"]+$'
 
-	# Apple Notes IDs are expected to be x-coredata://... URIs
-	if [[ "$note_id" =~ ^x-coredata://[^[:space:]\"]+$ ]]; then
+	if [[ "$note_id" =~ $pattern ]]; then
 		return 0
 	fi
 

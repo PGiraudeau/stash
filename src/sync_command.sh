@@ -120,6 +120,7 @@ sync_one_file() {
 	local json_output="$6"
 	local deletion_policy="$7"
 	local mirror_path="$8"
+	local link_index="$9"
 
 	echo "Reading file: $file_path"
 	markdown_content=$(read_markdown_file "$file_path") || return 1
@@ -127,7 +128,6 @@ sync_one_file() {
 	local_hash=$(compute_content_hash "$local_body")
 
 	note_id=$(get_id_from_frontmatter "$markdown_content") || true
-	link_index=$(build_note_index "$root_dir" || true)
 	note_found=""
 	has_note=0
 	if [ -n "$note_id" ]; then
@@ -284,7 +284,8 @@ if [ -f "$input_path" ]; then
 	root_dir=$(dirname "$input_path")
 	lock_file=$(acquire_lock "$root_dir") || exit 1
 	trap 'release_lock "$lock_file"' EXIT
-	sync_one_file "$input_path" "$root_dir" "$base_folder" "$auto_create" "$dry_run" "$json_output" "$deletion_policy" "$mirror_path"
+	link_index=$(build_note_index "$root_dir" || true)
+	sync_one_file "$input_path" "$root_dir" "$base_folder" "$auto_create" "$dry_run" "$json_output" "$deletion_policy" "$mirror_path" "$link_index"
 	exit $?
 fi
 
@@ -295,8 +296,9 @@ if [ -d "$input_path" ]; then
 	if [ "$materialize_remote" = "1" ] || [ "$materialize_remote" = "true" ]; then
 		materialize_remote_tree "$input_path" "$base_folder" "$dry_run" "$json_output" || failed=1
 	fi
+	link_index=$(build_note_index "$input_path" || true)
 	while IFS= read -r file_path; do
-		sync_one_file "$file_path" "$input_path" "$base_folder" "$auto_create" "$dry_run" "$json_output" "$deletion_policy" "$mirror_path" || failed=1
+		sync_one_file "$file_path" "$input_path" "$base_folder" "$auto_create" "$dry_run" "$json_output" "$deletion_policy" "$mirror_path" "$link_index" || failed=1
 	done < <(find "$input_path" -type f -name '*.md' | sort)
 	exit $failed
 fi

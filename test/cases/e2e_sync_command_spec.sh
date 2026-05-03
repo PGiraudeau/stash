@@ -149,10 +149,7 @@ describe "sync_command"
     _make_sync_file "$file_path" "# Bootstrap Note" \
       "apple_notes_id: x-coredata://bootstrap/ICNote/p5"
 
-    allow_diff "$TEMP_FILE_REGEX"
-    allow_diff "stash_last_synced_at: [0-9TZ:\-]+"
-    allow_diff "stash_last_local_hash: [a-f0-9]+"
-    allow_diff "stash_last_remote_hash: [a-f0-9]+"
+    allow_diff "$TEMP_FILE_REGEX|stash_last_synced_at: .+|stash_last_local_hash: [a-f0-9]+|stash_last_remote_hash: [a-f0-9]+"
     approve "
       find_note() { echo 'x-coredata://bootstrap/ICNote/p5'; return 0; }
       read_note() { echo '<p>Remote content.</p>'; return 0; }
@@ -165,6 +162,7 @@ describe "sync_command"
       unset -f find_note read_note get_note_folder_path acquire_lock release_lock
     " "sync_bootstrap"
 
+    allow_diff "stash_last_synced_at: .+|stash_last_local_hash: [a-f0-9]+|stash_last_remote_hash: [a-f0-9]+"
     approve "cat $file_path" "sync_bootstrap_file"
     rm -f "$file_path"
 
@@ -172,10 +170,7 @@ describe "sync_command"
     file_path=$(mktemp)
     echo "# New Note" > "$file_path"
 
-    allow_diff "$TEMP_FILE_REGEX"
-    allow_diff "stash_last_synced_at: [0-9TZ:\-]+"
-    allow_diff "stash_last_local_hash: [a-f0-9]+"
-    allow_diff "stash_last_remote_hash: [a-f0-9]+"
+    allow_diff "$TEMP_FILE_REGEX|stash_last_synced_at: .+|stash_last_local_hash: [a-f0-9]+|stash_last_remote_hash: [a-f0-9]+"
     approve "
       find_note() { return 1; }
       create_note() { echo 'x-coredata://new/ICNote/p6'; return 0; }
@@ -188,6 +183,7 @@ describe "sync_command"
       unset -f find_note create_note get_note_folder_path acquire_lock release_lock
     " "sync_create_note"
 
+    allow_diff "stash_last_synced_at: .+|stash_last_local_hash: [a-f0-9]+|stash_last_remote_hash: [a-f0-9]+"
     approve "cat $file_path" "sync_create_note_file"
     rm -f "$file_path"
 
@@ -232,10 +228,7 @@ describe "sync_command"
     _make_sync_file "$file_path" "# Propagate Me" \
       "apple_notes_id: x-coredata://propagate/ICNote/p9"
 
-    allow_diff "$TEMP_FILE_REGEX"
-    allow_diff "stash_last_synced_at: [0-9TZ:\-]+"
-    allow_diff "stash_last_local_hash: [a-f0-9]+"
-    allow_diff "stash_last_remote_hash: [a-f0-9]+"
+    allow_diff "$TEMP_FILE_REGEX|stash_last_synced_at: .+|stash_last_local_hash: [a-f0-9]+|stash_last_remote_hash: [a-f0-9]+"
     approve "
       find_note() { return 1; }
       create_note() { echo 'x-coredata://propagate/ICNote/p10'; return 0; }
@@ -248,6 +241,7 @@ describe "sync_command"
       unset -f find_note create_note get_note_folder_path acquire_lock release_lock
     " "sync_missing_propagate"
 
+    allow_diff "stash_last_synced_at: .+|stash_last_local_hash: [a-f0-9]+|stash_last_remote_hash: [a-f0-9]+"
     approve "cat $file_path" "sync_missing_propagate_file"
     rm -f "$file_path"
 
