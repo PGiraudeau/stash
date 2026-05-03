@@ -5,36 +5,6 @@ prepare_links_for_push() {
 	local input_text
 	input_text=$(cat)
 
-	if [ -z "$source_file" ] || [ -z "$root_dir" ]; then
-		python3 - "$index_data" "$input_text" <<'PY'
-import re
-import sys
-
-text = sys.argv[2]
-
-pattern = re.compile(r'\]\(([^)]+)\)')
-
-def repl(m):
-    raw = m.group(1)
-    if '://' in raw or raw.startswith('#'):
-        return m.group(0)
-
-    target = raw
-    anchor = ''
-    if '#' in raw:
-        target, anchor = raw.split('#', 1)
-        anchor = '#' + anchor
-
-    if target.endswith('.md'):
-        return f'](stash-md://{target}{anchor})'
-
-    return f'](stash-asset://{target}{anchor})'
-
-sys.stdout.write(pattern.sub(repl, text))
-PY
-		return 0
-	fi
-
 	python3 - "$source_file" "$root_dir" "$index_data" "$input_text" <<'PY'
 import re
 import sys
@@ -75,7 +45,7 @@ def repl(m):
         note_id = index.get(rel)
         if note_id:
             return f'](stash-md://{rel}?note_id={note_id}{anchor})'
-        return f'](stash-md://{target}{anchor})'
+        return f'](stash-md://{rel}{anchor})'
 
     return f'](stash-asset://{rel}{anchor})'
 

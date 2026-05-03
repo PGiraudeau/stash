@@ -58,8 +58,16 @@ _stash_completions() {
       while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_stash_completions_filter "--help -h")" -- "$cur")
       ;;
 
+    'diff'*)
+      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_stash_completions_filter "--help -h")" -- "$cur")
+      ;;
+
+    'sync'*)
+      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_stash_completions_filter "--help -h --yes -y --folder -F --dry-run -n --json --deletion-policy --mirror-path")" -- "$cur")
+      ;;
+
     *)
-      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_stash_completions_filter "--help --version -h -v pull push")" -- "$cur")
+      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_stash_completions_filter "--help --version -h -v diff pull push sync")" -- "$cur")
       ;;
 
   esac

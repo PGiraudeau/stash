@@ -6,7 +6,8 @@ Usage:
   stash --version | -v
 
 Commands:
-  push          Push a Markdown file to Apple Notes (create or update)
-  pull          Pull content from Apple Notes to a Markdown file
+  push          Push a Markdown file or directory to Apple Notes (create or update)
+  pull          Pull content from Apple Notes to a Markdown file or directory
   diff          Show differences between a Markdown file and its linked Apple Note
+  sync          Two-way sync a Markdown file or directory with Apple Notes
   completions   Generate bash completions

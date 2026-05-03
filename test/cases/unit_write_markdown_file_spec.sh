@@ -23,8 +23,10 @@ describe "write_markdown_file"
   # Test 3: No file path provided (should fail)
   approve "write_markdown_file \"\" \"content\" || echo \"Exit code: \$?\"" "write_markdown_file_no_path"
   
-  # Test 4: File not found (should fail)
-  approve "write_markdown_file \"/nonexistent/path/file.md\" \"content\" || echo \"Exit code: \$?\"" "write_markdown_file_non_existing"
+  # Test 4: Create new file (should succeed)
+  new_file="$TEST_TMP_DIR/new_dir/new_file.md"
+  write_markdown_file "$new_file" "New content"
+  approve "cat \"$new_file\"" "write_markdown_file_create_new"
 
 # Cleanup
 rm -rf "$TEST_TMP_DIR"

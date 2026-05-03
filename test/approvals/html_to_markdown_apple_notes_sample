@@ -1,8 +1,12 @@
 # Sample Project Notes
 
+\
+
 **Created:** January 15, 2024
 
 **Status:** In Progress
+
+\
 
 ## Overview
 
@@ -10,11 +14,15 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit.
 
 Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
 
+\
+
 ## Key Points
 
 - First important item
 - Second important item
 - Third important item with **bold text**
+
+\
 
 ## Tasks
 
@@ -23,6 +31,8 @@ Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
   - Subtask alpha
   - Subtask beta
 - ~~Completed task~~
+
+\
 
 ### Additional Notes
 

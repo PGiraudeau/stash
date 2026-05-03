@@ -12,7 +12,7 @@ find_file_by_note_id() {
 			echo "$file_path"
 			return 0
 		fi
-	done < <(find "$root_dir" -type f -name '*.md' | sort)
+	done < <(find "$root_dir" -type f -name '*.md' 2>/dev/null | sort)
 
 	return 1
 }

@@ -15,7 +15,7 @@ describe "asset link roundtrip"
   content='See [Image](../assets/logo.png) and [Doc](target.md).'
   approve "echo '$content' | prepare_links_for_push '$source_file' '$tmp_dir' ''" "prepare_links_for_push_with_assets"
 
-  pushed='See [Image](stash-asset://assets/logo.png) and [Doc](stash-md://target.md).'
-  approve "echo '$pushed' | restore_links_from_pull" "restore_links_from_pull_with_assets"
+  pushed='See [Image](stash-asset://assets/logo.png) and [Doc](stash-md://sub/target.md).'
+  approve "echo '$pushed' | restore_links_from_pull '$source_file' '$tmp_dir'" "restore_links_from_pull_with_assets"
 
   rm -rf "$tmp_dir"

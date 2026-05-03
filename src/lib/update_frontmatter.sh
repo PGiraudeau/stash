@@ -8,7 +8,7 @@ update_frontmatter() {
 	current_frontmatter=$(printf '%s\n' "$content" | extract_frontmatter || true)
 	current_body=$(printf '%s\n' "$content" | strip_frontmatter)
 
-	preserved_frontmatter=$(printf '%s\n' "$current_frontmatter" | grep -v '^[[:space:]]*apple_notes_id:' || true)
+	preserved_frontmatter=$(printf '%s\n' "$current_frontmatter" | grep -v '^[[:space:]]*apple_notes_id:' | grep -v '^---[[:space:]]*$' || true)
 	preserved_frontmatter=$(printf '%s\n' "$preserved_frontmatter" | sed '/^[[:space:]]*$/d')
 
 	{

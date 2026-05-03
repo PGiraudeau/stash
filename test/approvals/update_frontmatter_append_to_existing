@@ -5,6 +5,7 @@ created: 2024-01-01
 apple_notes_id: x-coredata://TEST/ICNote/p123
 ---
 
+
 # My Cool Note
 
 This note has frontmatter but no apple_notes_id field.

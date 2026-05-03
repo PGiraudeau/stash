@@ -38,7 +38,7 @@ pull_one_file() {
 		return 1
 	fi
 
-	markdown_body=$(echo "$html_content" | html_to_markdown | restore_links_from_pull)
+	markdown_body=$(echo "$html_content" | html_to_markdown | restore_links_from_pull "$file_path" "$(dirname "$file_path")")
 	frontmatter=$(echo "$markdown_content" | extract_frontmatter)
 	updated_content=$(printf '%s\n\n%s' "$frontmatter" "$markdown_body")
 	write_markdown_file "$file_path" "$updated_content"

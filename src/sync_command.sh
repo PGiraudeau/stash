@@ -92,7 +92,7 @@ materialize_remote_tree() {
 
 		mkdir -p "$target_dir" || return 1
 		html_content=$(read_note "$note_id") || continue
-		remote_markdown=$(echo "$html_content" | html_to_markdown | restore_links_from_pull)
+		remote_markdown=$(echo "$html_content" | html_to_markdown | restore_links_from_pull "$target_file" "$root_dir")
 		remote_hash=$(compute_content_hash "$remote_markdown")
 		now=$(now_utc_iso8601)
 		content=$(printf '%s\n' "---")
@@ -145,7 +145,7 @@ sync_one_file() {
 			echo "Error: Failed to read note content: $file_path" >&2
 			return 1
 		}
-		remote_markdown=$(echo "$html_content" | html_to_markdown | restore_links_from_pull)
+		remote_markdown=$(echo "$html_content" | html_to_markdown | restore_links_from_pull "$file_path" "$root_dir")
 		remote_hash=$(compute_content_hash "$remote_markdown")
 		note_path=$(get_note_folder_path "$note_found" || true)
 	fi

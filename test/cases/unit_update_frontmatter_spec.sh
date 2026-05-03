@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 
 source "$APPROVALS_BASH"
+source "$LIB_PATH/extract_frontmatter.sh"
+source "$LIB_PATH/strip_frontmatter.sh"
 source "$LIB_PATH/update_frontmatter.sh"
 
 describe "update_frontmatter"
