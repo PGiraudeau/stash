@@ -26,13 +26,15 @@ EOF
     approve "
       find_note() { echo 'x-coredata://test/ICNote/p123'; return 0; }
       read_note() { echo '<p>Pulled content from Apple Notes</p>'; return 0; }
-      export -f find_note read_note
+      get_note_folder_path() { echo 'TestFolder'; return 0; }
+      export -f find_note read_note get_note_folder_path
       declare -A args; args[file]='$test_file'
       source \$SRC_PATH/pull_command.sh
-      unset -f find_note read_note
+      unset -f find_note read_note get_note_folder_path
     " "pull_existing_note"
 
     # Verify file content (frontmatter + empty line + pulled content)
+    allow_diff "stash_last_synced_at: [0-9TZ:\-]+"
     approve "cat $test_file" "pull_existing_note_content"
 
     rm -f "$test_file"

@@ -1,5 +1,10 @@
 ---
 apple_notes_id: x-coredata://test/ICNote/p123
+*
+stash_last_local_hash: 631fcb239e2c96f5dcd283ea185a6932a9bafe9fc67251d41759f4d0d3ea7842
+stash_last_remote_hash: 631fcb239e2c96f5dcd283ea185a6932a9bafe9fc67251d41759f4d0d3ea7842
+stash_note_path: TestFolder
 ---
+
 
 # Test Note

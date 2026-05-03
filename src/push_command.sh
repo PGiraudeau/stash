@@ -7,6 +7,9 @@ push_one_file() {
 	echo "Reading file: $file_path"
 	markdown_content=$(read_markdown_file "$file_path")
 
+	local_body=$(echo "$markdown_content" | strip_frontmatter)
+	local_hash=$(compute_content_hash "$local_body")
+
 	note_id=$(get_id_from_frontmatter "$markdown_content") || true
 
 	note_found=""
@@ -31,7 +34,7 @@ push_one_file() {
 		echo "Creating note..."
 		relative_dir=$(dirname "${file_path#$root_dir/}")
 		target_folder=$(join_apple_folder_path "$base_folder" "$relative_dir")
-		html_content=$(echo "$markdown_content" | strip_frontmatter | prepare_links_for_push "$file_path" "$root_dir" "$link_index" | markdown_to_html)
+		html_content=$(echo "$local_body" | prepare_links_for_push "$file_path" "$root_dir" "$link_index" | markdown_to_html)
 
 		new_note_id=$(create_note "$html_content" "$target_folder")
 		if [ -z "$new_note_id" ]; then
@@ -40,15 +43,22 @@ push_one_file() {
 		fi
 
 		updated_content=$(update_frontmatter "$markdown_content" "$new_note_id")
+		now=$(now_utc_iso8601)
+		note_path=$(get_note_folder_path "$new_note_id" || echo "$target_folder")
+		updated_content=$(update_sync_metadata "$updated_content" "$now" "$local_hash" "$local_hash" "$note_path")
 		write_markdown_file "$file_path" "$updated_content"
 		echo "Note created: $new_note_id"
 	else
 		echo "Updating note..."
-		html_content=$(echo "$markdown_content" | strip_frontmatter | prepare_links_for_push "$file_path" "$root_dir" "$link_index" | markdown_to_html)
+		html_content=$(echo "$local_body" | prepare_links_for_push "$file_path" "$root_dir" "$link_index" | markdown_to_html)
 		if ! update_note "$note_found" "$html_content"; then
 			echo "Error: Failed to update note" >&2
 			return 1
 		fi
+		now=$(now_utc_iso8601)
+		note_path=$(get_note_folder_path "$note_found" || true)
+		updated_content=$(update_sync_metadata "$markdown_content" "$now" "$local_hash" "$local_hash" "$note_path")
+		write_markdown_file "$file_path" "$updated_content"
 		echo "Note updated: $note_found"
 	fi
 }
@@ -59,11 +69,15 @@ auto_create="${args[yes]}"
 
 if [ -f "$input_path" ]; then
 	root_dir=$(dirname "$input_path")
+	lock_file=$(acquire_lock "$root_dir") || exit 1
+	trap 'release_lock "$lock_file"' EXIT
 	push_one_file "$input_path" "$root_dir" "$base_folder" "$auto_create"
 	exit $?
 fi
 
 if [ -d "$input_path" ]; then
+	lock_file=$(acquire_lock "$input_path") || exit 1
+	trap 'release_lock "$lock_file"' EXIT
 	failed=0
 	while IFS= read -r file_path; do
 		push_one_file "$file_path" "$input_path" "$base_folder" "$auto_create" || failed=1

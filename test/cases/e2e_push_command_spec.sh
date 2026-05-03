@@ -22,13 +22,15 @@ describe "push_command"
     approve "
       find_note() { return 1; }
       create_note() { echo 'x-coredata://test/ICNote/p123'; return 0; }
-      export -f find_note create_note
+      get_note_folder_path() { echo 'TestFolder'; return 0; }
+      export -f find_note create_note get_note_folder_path
       declare -A args; args[file]='$test_file'
       echo 'y' | source $SRC_PATH/push_command.sh
-      unset -f find_note create_note
+      unset -f find_note create_note get_note_folder_path
     " "push_new_file_confirm"
     
     # Verify frontmatter was updated
+    allow_diff "stash_last_synced_at: [0-9TZ:\-]+"
     approve "cat $test_file" "push_new_file_confirm_frontmatter"
     
     rm -f "$test_file"
@@ -63,10 +65,11 @@ EOF
     approve "
       find_note() { echo 'x-coredata://existing/ICNote/p456'; return 0; }
       update_note() { echo \"\$1\"; return 0; }
-      export -f find_note update_note
+      get_note_folder_path() { echo 'ExistingFolder'; return 0; }
+      export -f find_note update_note get_note_folder_path
       declare -A args; args[file]='$test_file'
       source $SRC_PATH/push_command.sh
-      unset -f find_note update_note
+      unset -f find_note update_note get_note_folder_path
     " "push_existing_note"
     
     rm -f "$test_file"
@@ -85,13 +88,15 @@ EOF
     approve "
       find_note() { return 1; }
       create_note() { echo 'x-coredata://new/ICNote/p999'; return 0; }
-      export -f find_note create_note
+      get_note_folder_path() { echo 'OrphanedFolder'; return 0; }
+      export -f find_note create_note get_note_folder_path
       declare -A args; args[file]='$test_file'
       echo 'y' | source $SRC_PATH/push_command.sh
-      unset -f find_note create_note
+      unset -f find_note create_note get_note_folder_path
     " "push_orphaned_id_confirm"
     
     # Verify frontmatter was updated with new ID
+    allow_diff "stash_last_synced_at: [0-9TZ:\-]+"
     approve "cat $test_file" "push_orphaned_id_confirm_frontmatter"
     
     rm -f "$test_file"
