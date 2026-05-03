@@ -450,7 +450,7 @@ The `Formula/stash.rb` is automatically updated by the release pipeline with the
 
 | Gate | Component | Description | Status |
 |------|-----------|-------------|--------|
-| 1 | `strip_frontmatter.sh` | Strip YAML frontmatter using pcregrep | ✅ |
+| 1 | `strip_frontmatter.sh` | Strip YAML frontmatter using awk | ✅ |
 | 2 | `get_id_from_frontmatter.sh` | Extract apple_notes_id from frontmatter | ✅ |
 | 3 | `update_frontmatter.sh` | Add/update apple_notes_id in frontmatter | ✅ |
 | 4 | `create_note.sh`, `delete_note.sh` | Create/delete Apple Notes via AppleScript | ✅ |
@@ -467,8 +467,8 @@ The `Formula/stash.rb` is automatically updated by the release pipeline with the
 
 - **Unit tests**: 36 tests (pure functions)
 - **Integration tests**: 11 tests (Apple Notes operations)
-- **E2E tests**: 15 tests (CLI workflows)
-- **Total**: 62 tests
+- **E2E tests**: 25 tests (CLI workflows including sync scenarios)
+- **Total**: 72 tests
 
 ## Questions?
 

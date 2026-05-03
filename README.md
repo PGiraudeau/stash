@@ -130,21 +130,25 @@ Congratulations! You've written a new Markdown note, it's nice and tidy, and you
    My Cool Note
    ...
    ```
-3. Front-matter with a unique identifier will be added to your markdown file:
+3. Front-matter with a unique identifier and sync metadata will be added to your markdown file:
    ```md
    ---
-   apple_notes_id: my-new-cool-note-identifier 
+   apple_notes_id: x-coredata://...
+   stash_last_synced_at: 2026-01-01T00:00:00Z
+   stash_last_local_hash: abc123...
+   stash_last_remote_hash: abc123...
+   stash_note_path: Projects:Personal
    ---
 
    # My Cool Note
    ...
    ```
-   > NOTE: If you already have front-matter, it will be added to the existing front-matter.
+   > NOTE: If you already have front-matter, it will be preserved and updated in place.
 
 Made changes to the Markdown file and now it's out of sync? Simply:
 1. Rerun `push my-cool-note.md`.
-2. The tool searches for the note matching your identifier (`id_my-new-cool-note-identifier`).
-3. It rewrites the note's content with your updated Markdown.
+2. The tool searches for the note matching your identifier.
+3. It rewrites the note's content with your updated Markdown and updates the sync hashes.
    > NOTE: If no note was found (due to unexpected ID changes) you will be asked if you'd like to create a new note, which will overwrite your previous ID.
 
 ### Pulling Notes
@@ -155,9 +159,8 @@ Now the panic has settled, you're back at your computer, and you're wondering: "
 
 Don't fret. Simply:
 1. Run `pull my-cool-note.md`.
-2. The tool searches for the note matching your identifier (`id_my-new-cool-note-identifier`).
-3. It rewrites your local Markdown file with the content from Apple Notes.
-   > NOTE: The front-matter is unchanged during pull operations.
+2. The tool searches for the note matching your identifier.
+3. It rewrites your local Markdown file with the content from Apple Notes and updates the sync metadata.
 
 ## Requirements
 
@@ -183,12 +186,15 @@ These forms are used during sync conversion to keep link intent stable across di
 
 ## Sync metadata
 
-`sync` stores metadata in frontmatter to make decisions deterministic:
+`push`, `pull`, and `sync` all maintain metadata in frontmatter for deterministic change detection:
 
 - `stash_last_synced_at`
 - `stash_last_local_hash`
 - `stash_last_remote_hash`
 - `stash_note_path`
+
+This ensures consistent behavior regardless of which command you use — `sync` won't
+see false conflicts after a standalone `push` or `pull`.
 
 ## Optional repository config
 
