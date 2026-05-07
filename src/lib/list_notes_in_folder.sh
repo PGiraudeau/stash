@@ -2,66 +2,9 @@ list_notes_in_folder() {
 	local base_folder="$1"
 	local escaped_base_folder="${base_folder//\"/\\\"}"
 
-	osascript 2>&1 <<EOF
-tell application "Notes"
-  try
-    set outLines to {}
-    if "$escaped_base_folder" is "" then
-      set roots to folders
-      repeat with f in roots
-        set outLines to my emitFolder(f, outLines)
-      end repeat
-    else
-      set folderNames to my splitString("$escaped_base_folder", ":")
-      set currentFolder to missing value
-      repeat with folderName in folderNames
-        if currentFolder is missing value then
-          set currentFolder to first folder whose name is (contents of folderName)
-        else
-          set currentFolder to first folder of currentFolder whose name is (contents of folderName)
-        end if
-      end repeat
-      set outLines to my emitFolder(currentFolder, outLines)
-    end if
-    set AppleScript's text item delimiters to linefeed
-    return outLines as text
-  on error
-    return ""
-  end try
+	# Build AppleScript with handlers at top level to avoid macOS tell-block restriction
+	result=$(printf 'tell application "Notes"\n  try\n    set outLines to {}\n    if "%s" is "" then\n      set roots to folders\n      repeat with f in roots\n        set outLines to my emitFolder(f, outLines)\n      end repeat\n    else\n      set folderNames to my splitString("%s", ":")\n      set currentFolder to missing value\n      repeat with folderName in folderNames\n        if currentFolder is missing value then\n          set currentFolder to first folder whose name is (contents of folderName)\n        else\n          set currentFolder to first folder of currentFolder whose name is (contents of folderName)\n        end if\n      end repeat\n      set outLines to my emitFolder(currentFolder, outLines)\n    end if\n    set AppleScript'"'"'s text item delimiters to linefeed\n    return outLines as text\n  on error\n    return ""\n  end try\nend tell\n\non emitFolder(aFolder, outLines)\n  tell application "Notes"\n    set folderPath to my buildFolderPath(aFolder)\n    repeat with n in notes of aFolder\n      set noteId to id of n\n      set noteName to name of n\n      set end of outLines to noteId & "|" & folderPath & "|" & noteName\n    end repeat\n    repeat with sf in folders of aFolder\n      set outLines to my emitFolder(sf, outLines)\n    end repeat\n    return outLines\n  end tell\nend emitFolder\n\non splitString(theText, theDelimiter)\n  set AppleScript'"'"'s text item delimiters to theDelimiter\n  set theItems to every text item of theText\n  set AppleScript'"'"'s text item delimiters to ""\n  return theItems\nend splitString\n\non buildFolderPath(aFolder)\n  tell application "Notes"\n    set folderName to name of aFolder\n    try\n      set parentFolder to container of aFolder\n      if class of parentFolder is folder then\n        return (my buildFolderPath(parentFolder)) & ":" & folderName\n      else\n        return folderName\n      end if\n    on error\n      return folderName\n    end try\n  end tell\nend buildFolderPath\n' \
+		"$escaped_base_folder" "$escaped_base_folder" | osascript 2>&1 || true)
 
-  on emitFolder(aFolder, outLines)
-    set folderPath to my buildFolderPath(aFolder)
-    repeat with n in notes of aFolder
-      set noteId to id of n
-      set noteName to name of n
-      set end of outLines to noteId & "|" & folderPath & "|" & noteName
-    end repeat
-    repeat with sf in folders of aFolder
-      set outLines to my emitFolder(sf, outLines)
-    end repeat
-    return outLines
-  end emitFolder
-
-  on splitString(theText, theDelimiter)
-    set AppleScript's text item delimiters to theDelimiter
-    set theItems to every text item of theText
-    set AppleScript's text item delimiters to ""
-    return theItems
-  end splitString
-
-  on buildFolderPath(aFolder)
-    set folderName to name of aFolder
-    try
-      set parentFolder to container of aFolder
-      if class of parentFolder is folder then
-        return (my buildFolderPath(parentFolder)) & ":" & folderName
-      else
-        return folderName
-      end if
-    on error
-      return folderName
-    end try
-  end buildFolderPath
-end tell
-EOF
+	echo "$result"
 }

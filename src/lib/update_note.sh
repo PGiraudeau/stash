@@ -2,30 +2,15 @@ update_note() {
 	local note_id="$1"
 	local html_content="$2"
 	validate_note_id "$note_id" || return 1
-	
-	# Escape double quotes for AppleScript string
-	local escaped_content="${html_content//\"/\\\"}"
-	
-	result=$(osascript 2>&1 <<EOF
-tell application "Notes"
-  try
-    set deletedNotesFolder to folder "Recently Deleted"
-    set theNote to first note whose id is "$note_id"
-    set theFolder to container of theNote
-    
-    if theFolder is equal to deletedNotesFolder then
-      error "Note is in Recently Deleted"
-    end if
-    
-    set body of theNote to "$escaped_content"
-    return "$note_id"
-  on error errMsg
-    error errMsg
-  end try
-end tell
-EOF
-)
-	
+
+	# Strip newlines and escape quotes for AppleScript string
+	local escaped_content="${html_content//$'\n'/}"
+	escaped_content="${escaped_content//\"/\\\"}"
+
+	# Build AppleScript and pipe to osascript to avoid heredoc escaping issues
+	result=$(printf 'tell application "Notes"\n  try\n    set deletedNotesFolder to folder "Recently Deleted"\n    set theNote to first note whose id is "%s"\n    set theFolder to container of theNote\n    \n    if theFolder is equal to deletedNotesFolder then\n      error "Note is in Recently Deleted"\n    end if\n    \n    set body of theNote to "%s"\n    return "%s"\n  on error errMsg\n    error errMsg\n  end try\nend tell\n' \
+		"$note_id" "$escaped_content" "$note_id" | osascript 2>&1 || true)
+
 	# Check if result matches the note_id we tried to update
 	if [ "$result" = "$note_id" ]; then
 		echo "$result"
