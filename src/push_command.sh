@@ -81,7 +81,7 @@ if [ -d "$input_path" ]; then
 	failed=0
 	while IFS= read -r file_path; do
 		push_one_file "$file_path" "$input_path" "$base_folder" "$auto_create" || failed=1
-	done < <(find "$input_path" -type f -name '*.md' | sort)
+	done < <(find "$input_path" \( -name '.*' -prune \) -o \( -type f -name '*.md' -print \) 2>/dev/null | sort)
 	exit $failed
 fi
 

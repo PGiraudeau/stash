@@ -12,5 +12,5 @@ build_note_index() {
 		if [ -n "$note_id" ]; then
 			printf '%s|%s\n' "$rel_path" "$note_id"
 		fi
-	done < <(find "$root_dir" -type f -name '*.md' 2>/dev/null | sort)
+	done < <(find "$root_dir" \( -name '.*' -prune \) -o \( -type f -name '*.md' -print \) 2>/dev/null | sort)
 }

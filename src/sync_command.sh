@@ -299,7 +299,7 @@ if [ -d "$input_path" ]; then
 	link_index=$(build_note_index "$input_path" || true)
 	while IFS= read -r file_path; do
 		sync_one_file "$file_path" "$input_path" "$base_folder" "$auto_create" "$dry_run" "$json_output" "$deletion_policy" "$mirror_path" "$link_index" || failed=1
-	done < <(find "$input_path" -type f -name '*.md' | sort)
+	done < <(find "$input_path" \( -name '.*' -prune \) -o \( -type f -name '*.md' -print \) 2>/dev/null | sort)
 	exit $failed
 fi
 
