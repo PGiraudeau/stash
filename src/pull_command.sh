@@ -1,6 +1,7 @@
 pull_one_file() {
 	local file_path="$1"
 	local base_folder="$2"
+	local root_dir="$3"
 
 	echo "Reading file: $file_path"
 	markdown_content=$(read_markdown_file "$file_path")
@@ -38,7 +39,7 @@ pull_one_file() {
 		return 1
 	fi
 
-	markdown_body=$(echo "$html_content" | html_to_markdown | restore_links_from_pull "$file_path" "$(dirname "$file_path")")
+	markdown_body=$(echo "$html_content" | html_to_markdown | restore_links_from_pull "$file_path" "$root_dir")
 	remote_hash=$(compute_content_hash "$markdown_body")
 	now=$(now_utc_iso8601)
 	note_path=$(get_note_folder_path "$note_id" || true)
@@ -57,7 +58,7 @@ if [ -f "$input_path" ]; then
 	root_dir=$(dirname "$input_path")
 	lock_file=$(acquire_lock "$root_dir") || exit 1
 	trap 'release_lock "$lock_file"' EXIT
-	pull_one_file "$input_path" "$base_folder"
+	pull_one_file "$input_path" "$base_folder" "$root_dir"
 	exit $?
 fi
 
@@ -66,7 +67,7 @@ if [ -d "$input_path" ]; then
 	trap 'release_lock "$lock_file"' EXIT
 	failed=0
 	while IFS= read -r file_path; do
-		pull_one_file "$file_path" "$base_folder" || failed=1
+		pull_one_file "$file_path" "$base_folder" "$input_path" || failed=1
 	done < <(find "$input_path" -type f -name '*.md' | sort)
 	exit $failed
 fi
