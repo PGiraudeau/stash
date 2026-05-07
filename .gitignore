@@ -3,6 +3,7 @@
 .DS_Store
 .AppleDouble
 .LSOverride
+.vscode/
 oc.sh
 stash/
 # Icon must end with two \r
