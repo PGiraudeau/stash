@@ -262,13 +262,13 @@ sync_one_file() {
 }
 
 input_path="${args[file]}"
-base_folder="${args[folder]}"
-auto_create="${args[yes]}"
-dry_run="${args[dry_run]}"
-json_output="${args[json]}"
-deletion_policy="${args[deletion_policy]}"
-mirror_path="${args[mirror_path]}"
-materialize_remote="${args[materialize_remote]}"
+base_folder="${args["--folder"]}"
+auto_create="${args["--yes"]}"
+dry_run="${args["--dry-run"]}"
+json_output="${args["--json"]}"
+deletion_policy="${args["--deletion-policy"]}"
+mirror_path="${args["--mirror-path"]}"
+materialize_remote="${args["--materialize-remote"]}"
 
 config_file=$(load_stash_config "$input_path" || true)
 if [ -n "$config_file" ]; then

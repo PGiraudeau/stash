@@ -52,7 +52,7 @@ pull_one_file() {
 }
 
 input_path="${args[file]}"
-base_folder="${args[folder]}"
+base_folder="${args["--folder"]}"
 
 if [ -f "$input_path" ]; then
 	root_dir=$(dirname "$input_path")

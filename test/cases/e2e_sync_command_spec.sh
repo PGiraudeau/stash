@@ -178,7 +178,7 @@ describe "sync_command"
       acquire_lock() { echo '/dev/null'; return 0; }
       release_lock() { return 0; }
       export -f find_note create_note get_note_folder_path acquire_lock release_lock
-      declare -A args; args[file]='$file_path'; args[yes]='1'
+      declare -A args; args[file]='$file_path'; args['--yes']='1'
       source \$SRC_PATH/sync_command.sh
       unset -f find_note create_note get_note_folder_path acquire_lock release_lock
     " "sync_create_note"
@@ -199,7 +199,7 @@ describe "sync_command"
       acquire_lock() { echo '/dev/null'; return 0; }
       release_lock() { return 0; }
       export -f find_note get_note_folder_path acquire_lock release_lock
-      declare -A args; args[file]='$file_path'; args[yes]='1'; args[deletion_policy]='ignore'
+      declare -A args; args[file]='$file_path'; args['--yes']='1'; args['--deletion-policy']='ignore'
       source \$SRC_PATH/sync_command.sh
       unset -f find_note get_note_folder_path acquire_lock release_lock
     " "sync_missing_ignore"
@@ -217,7 +217,7 @@ describe "sync_command"
       acquire_lock() { echo '/dev/null'; return 0; }
       release_lock() { return 0; }
       export -f find_note get_note_folder_path acquire_lock release_lock
-      declare -A args; args[file]='$file_path'; args[yes]='1'; args[deletion_policy]='archive'
+      declare -A args; args[file]='$file_path'; args['--yes']='1'; args['--deletion-policy']='archive'
       source \$SRC_PATH/sync_command.sh
       unset -f find_note get_note_folder_path acquire_lock release_lock
     " "sync_missing_archive"
@@ -236,7 +236,7 @@ describe "sync_command"
       acquire_lock() { echo '/dev/null'; return 0; }
       release_lock() { return 0; }
       export -f find_note create_note get_note_folder_path acquire_lock release_lock
-      declare -A args; args[file]='$file_path'; args[yes]='1'; args[deletion_policy]='propagate'
+      declare -A args; args[file]='$file_path'; args['--yes']='1'; args['--deletion-policy']='propagate'
       source \$SRC_PATH/sync_command.sh
       unset -f find_note create_note get_note_folder_path acquire_lock release_lock
     " "sync_missing_propagate"
@@ -267,7 +267,7 @@ describe "sync_command"
       acquire_lock() { echo '/dev/null'; return 0; }
       release_lock() { return 0; }
       export -f compute_content_hash find_note read_note get_note_folder_path acquire_lock release_lock
-      declare -A args; args[file]='$file_path'; args[dry_run]='1'
+      declare -A args; args[file]='$file_path'; args['--dry-run']='1'
       source \$SRC_PATH/sync_command.sh
       unset -f compute_content_hash find_note read_note get_note_folder_path acquire_lock release_lock
     " "sync_dry_run"

@@ -64,8 +64,8 @@ push_one_file() {
 }
 
 input_path="${args[file]}"
-base_folder="${args[folder]}"
-auto_create="${args[yes]}"
+base_folder="${args[--folder]}"
+auto_create="${args[--yes]}"
 
 if [ -f "$input_path" ]; then
 	root_dir=$(dirname "$input_path")
