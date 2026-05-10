@@ -24,22 +24,6 @@ brew tap shakedlokits/stash https://github.com/shakedlokits/stash
 brew install shakedlokits/stash/stash
 ```
 
-Pre-merge branch testing (recommended):
-
-```bash
-git clone --branch feature/future-implementation https://github.com/PGiraudeau/stash.git
-cd stash
-docker run --rm --user $(id -u):$(id -g) --volume "$PWD:/app" dannyben/bashly generate
-./dist/stash --version
-```
-
-Apple Silicon note:
-
-```bash
-echo 'export PATH="/opt/homebrew/bin:$PATH"' >> ~/.zprofile
-source ~/.zprofile
-```
-
 ### Quick Example
 
 Push a markdown file to Apple Notes:
